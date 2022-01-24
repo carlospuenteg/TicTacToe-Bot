@@ -56,7 +56,7 @@ def train():
 
 ######################################################################
 
-def play():
+def play(auto):
     positions = [0,1,2,3,4,5,6,7,8]
     game = []
 
@@ -76,7 +76,9 @@ def play():
                     winLocs[w[i]] += 1
             if not foundWin:
                 for d in defeats:
-                    if game[:i] == d[:i]  and  d[i] in positions  and  len(w) >= (i+1):  # [3, 5, 4, 2, 6, 8]
+                    if  (i >= 4) and  (len(d) == (i+2))  and  (d[i] in positions)  and  (game[:i] == d[:i]):  # 100% win
+                        winLocs[d[i]] = 0
+                    if game[:i] == d[:i]  and  d[i] in positions  and  len(w) >= (i+1):  # [4, 6, 0, 8, 2, 7]
                         defLocs[d[i]] += 1
 
                 for l in range(9):
@@ -98,9 +100,19 @@ def play():
                     positions.remove(r)
 
         else:
-            r = random.choice(positions)
-            game.append(r)
-            positions.remove(r)
+            if auto:
+                r = random.choice(positions)
+                game.append(r)
+                positions.remove(r)
+            else:
+                while True:
+                    choice = int(input("\nNew position: "))
+                    if choice in positions:
+                        break
+                    else:
+                        print("\nInvalid position!")
+                game.append(choice)
+                positions.remove(choice)
 
         drawGame(game)
 
@@ -108,25 +120,46 @@ def play():
         player2 = game[1::2]
         for w in posWins:
             if all(elem in player1 for elem in w):
+                print("\nAI won\n")
                 return 1
             elif all(elem in player2 for elem in w):
+                print("\nPlayer won\n")
                 return 2
+    print("\nIt's a tie\n")
     return 0
 
 ######################################################################
 
-def test():
+def test(nGames):
     winsCount = 0
-    for _ in range(100):
-        if play() == 1:
+    defeatsCount = 0
+    tieCount = 0
+    for tryNum in range(nGames):
+        print("Try number " + str(tryNum) + ":")
+        result = play(1)
+        if result == 1:
             winsCount += 1
+        elif result == 2:
+            defeatsCount += 1
+        else:
+            tieCount += 1
 
-    return winsCount
+    print("In " + str(nGames) + " games:")
+    print("- Wins: " + str(winsCount))
+    print("- Defeats: " + str(defeatsCount))
+    print("- Ties: " + str(tieCount))
+
+    '''
+    From 10000 games:
+    - 9895 won
+    - 0 lost
+    - 105 tied
+    '''
 
 ######################################################################
 
 def drawGame(game):
-    display = ""
+    display = "\n"
     table = [0,0,0,0,0,0,0,0,0]
 
     for i,x in enumerate(game):
@@ -145,5 +178,25 @@ def drawGame(game):
 
 ######################################################################     
 
+def menu():
+    while True:
+        print("\n0. EXIT")
+        print("1. Train AI")
+        print("2. Test AI")
+        print("3. PLAY")
+
+        op = int(input("\nOption: "))
+
+        if op == 0:
+            break
+        elif op == 1:
+            train()
+        elif op == 2:
+            test(int(input("Number of games to test: ")))
+        elif op == 3:
+            play(0)
+
+######################################################################
+
+menu()
 #train()
-print(test())
